@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auryn Astrology | 西洋占星術家 望遠響子</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+JP:wght@300;400;500&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --midnight: #080c14;
+      --deep-navy: #0d1628;
+      --navy: #131e35;
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dim: rgba(201, 168, 76, 0.3);
+      --star: #f0e8d0;
+      --text: #d4cfc6;
+      --text-dim: #8a8070;
+      --white: #faf8f4;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--midnight);
+      color: var(--text);
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 300;
+      line-height: 1.9;
+      overflow-x: hidden;
+    }
+
+    /* ── STARFIELD ── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #starfield canvas { width: 100%; height: 100%; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: linear-gradient(to bottom, rgba(8,12,20,0.95), transparent);
+      backdrop-filter: blur(2px);
+    }
+    .nav-logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      font-family: 'Noto Serif JP', serif;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--gold-light); }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+    }
+    .hero-eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 1s 0.3s forwards;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 9vw, 7rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--white);
+      letter-spacing: 0.05em;
+      line-height: 1.1;
+      opacity: 0;
+      animation: fadeUp 1s 0.5s forwards;
+    }
+    .hero-subtitle {
+      margin-top: 1.2rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      color: var(--gold-light);
+      font-family: 'Noto Serif JP', serif;
+      opacity: 0;
+      animation: fadeUp 1s 0.7s forwards;
+    }
+    .hero-desc {
+      margin-top: 2.5rem;
+      max-width: 540px;
+      font-size: 0.9rem;
+      line-height: 2;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 1s 0.9s forwards;
+    }
+    .hero-divider {
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+      margin: 3rem auto 0;
+      opacity: 0;
+      animation: fadeUp 1s 1.1s forwards;
+    }
+
+    /* ── NOTICE ── */
+    .notice-bar {
+      position: relative; z-index: 1;
+      background: rgba(201, 168, 76, 0.08);
+      border-top: 1px solid var(--gold-dim);
+      border-bottom: 1px solid var(--gold-dim);
+      padding: 1.2rem 2rem;
+      text-align: center;
+      font-size: 0.82rem;
+      letter-spacing: 0.05em;
+    }
+    .notice-bar .date { color: var(--gold); margin-right: 1rem; font-family: 'Cinzel', serif; font-size: 0.72rem; }
+    .notice-links { margin-top: 0.6rem; display: flex; justify-content: center; gap: 2rem; }
+    .notice-links a { color: var(--gold-light); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.1em; border-bottom: 1px solid var(--gold-dim); padding-bottom: 1px; transition: color 0.3s; }
+    .notice-links a:hover { color: var(--white); }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative; z-index: 1;
+      padding: 7rem 2rem;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    .container-wide { max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 30px;
+      height: 1px;
+      background: var(--gold);
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--white);
+      margin-bottom: 3rem;
+    }
+
+    /* ── ABOUT ── */
+    #about { background: var(--deep-navy); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-body { font-size: 0.88rem; line-height: 2.2; }
+    .about-body p + p { margin-top: 1.5rem; }
+    .about-card {
+      background: rgba(201, 168, 76, 0.05);
+      border: 1px solid var(--gold-dim);
+      padding: 2.5rem;
+    }
+    .about-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      color: var(--gold-light);
+      margin-bottom: 1.2rem;
+      font-weight: 400;
+    }
+    .about-card p { font-size: 0.85rem; line-height: 2; }
+
+    /* ── PROFILE ── */
+    #profile { background: var(--midnight); }
+    .profile-layout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .profile-image-placeholder {
+      width: 220px;
+      height: 280px;
+      background: linear-gradient(135deg, #1a2640, #0d1628);
+      border: 1px solid var(--gold-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .profile-image-placeholder span { color: var(--text-dim); font-size: 0.75rem; letter-spacing: 0.1em; }
+    .profile-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--white);
+    }
+    .profile-name-en { font-size: 1rem; color: var(--gold); letter-spacing: 0.15em; margin-top: 0.3rem; font-family: 'Cinzel', serif; }
+    .profile-tag { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 0.2em; margin-top: 0.3rem; }
+    .profile-bio { margin-top: 1.8rem; font-size: 0.88rem; line-height: 2.1; }
+    .profile-signs {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .sign-chip {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--gold-light);
+      border: 1px solid var(--gold-dim);
+      padding: 0.3rem 0.9rem;
+    }
+    .career-table { margin-top: 2.5rem; }
+    .career-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 1.5rem;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      font-size: 0.85rem;
+    }
+    .career-label { color: var(--gold); font-size: 0.75rem; letter-spacing: 0.1em; padding-top: 0.1em; }
+
+    /* ── SESSION ── */
+    #session { background: var(--navy); }
+    .session-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    .session-card {
+      background: rgba(8,12,20,0.6);
+      border: 1px solid var(--gold-dim);
+      padding: 2rem 2.5rem;
+    }
+    .session-card h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+    .session-card p { font-size: 0.85rem; line-height: 2; }
+    .session-card a { color: var(--gold-light); }
+    .session-card ul { list-style: none; padding: 0; }
+    .session-card ul li { font-size: 0.85rem; line-height: 1.9; padding-left: 1rem; position: relative; }
+    .session-card ul li::before { content: '·'; position: absolute; left: 0; color: var(--gold); }
+
+    /* ── PRICE ── */
+    #price { background: var(--midnight); }
+    .price-table { width: 100%; border-collapse: collapse; }
+    .price-table tr { border-bottom: 1px solid rgba(201,168,76,0.12); }
+    .price-table td { padding: 1.3rem 0.5rem; font-size: 0.9rem; }
+    .price-table td:last-child { text-align: right; color: var(--gold-light); font-family: 'Cinzel', serif; font-size: 1rem; }
+    .price-note {
+      margin-top: 2rem;
+      padding: 1.8rem 2rem;
+      background: rgba(201,168,76,0.05);
+      border-left: 2px solid var(--gold);
+      font-size: 0.83rem;
+      line-height: 2;
+    }
+
+    /* ── FLOW ── */
+    #flow { background: var(--deep-navy); }
+    .flow-steps { display: flex; flex-direction: column; gap: 0; }
+    .flow-step {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 2rem;
+      align-items: start;
+      padding: 2rem 0;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .flow-step:last-child { border-bottom: none; }
+    .flow-num {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      color: var(--gold-dim);
+      line-height: 1;
+      padding-top: 0.2rem;
+    }
+    .flow-num span { font-size: 0.6rem; display: block; letter-spacing: 0.2em; color: var(--gold); margin-top: 0.3rem; }
+    .flow-body h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--white); margin-bottom: 0.5rem; font-weight: 400; }
+    .flow-body p { font-size: 0.85rem; line-height: 2; }
+
+    /* ── FAQ ── */
+    #faq { background: var(--midnight); }
+    .faq-list { display: flex; flex-direction: column; gap: 0; }
+    .faq-item {
+      border-bottom: 1px solid rgba(201,168,76,0.12);
+      overflow: hidden;
+    }
+    .faq-q {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      padding: 1.8rem 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      transition: color 0.3s;
+    }
+    .faq-q:hover { color: var(--gold-light); }
+    .faq-q .q-mark { color: var(--gold); font-family: 'Cinzel', serif; font-size: 1rem; flex-shrink: 0; }
+    .faq-q .faq-icon { margin-left: auto; color: var(--gold-dim); font-size: 1.2rem; flex-shrink: 0; transition: transform 0.3s; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-a {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.4s ease;
+    }
+    .faq-item.open .faq-a { grid-template-rows: 1fr; }
+    .faq-a-inner {
+      overflow: hidden;
+      padding: 0 0 0 2.2rem;
+    }
+    .faq-item.open .faq-a-inner { padding-bottom: 1.8rem; }
+    .faq-a-inner p { font-size: 0.85rem; line-height: 2; color: var(--text-dim); }
+    .faq-a-inner ul { list-style: none; padding: 0; }
+    .faq-a-inner ul li { font-size: 0.85rem; line-height: 2; color: var(--text-dim); padding-left: 1rem; position: relative; }
+    .faq-a-inner ul li::before { content: '·'; position: absolute; left: 0; color: var(--gold); }
+
+    /* ── BOOKING ── */
+    #booking { background: var(--navy); }
+    .booking-notice {
+      text-align: center;
+      padding: 3rem 2rem;
+      border: 1px solid var(--gold-dim);
+      margin-bottom: 3rem;
+      background: rgba(201,168,76,0.04);
+    }
+    .booking-notice p { font-size: 0.9rem; color: var(--gold-light); }
+    .contact-form { max-width: 600px; margin: 0 auto; }
+    .form-group { margin-bottom: 2rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+    }
+    .form-group label .req { color: #e07070; margin-left: 0.4rem; font-size: 0.65rem; }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: rgba(201,168,76,0.04);
+      border: 1px solid var(--gold-dim);
+      color: var(--text);
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.88rem;
+      padding: 0.9rem 1.2rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--gold); }
+    .form-group textarea { min-height: 130px; resize: vertical; }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: var(--text-dim); font-size: 0.82rem; }
+    .privacy-check { display: flex; align-items: flex-start; gap: 0.8rem; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 2rem; }
+    .privacy-check input[type=checkbox] { accent-color: var(--gold); flex-shrink: 0; margin-top: 0.2rem; }
+    .privacy-check a { color: var(--gold-light); }
+    .btn-submit {
+      display: block;
+      width: 100%;
+      padding: 1.1rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+    }
+    .btn-submit:hover { background: var(--gold); color: var(--midnight); }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      background: var(--midnight);
+      border-top: 1px solid var(--gold-dim);
+      padding: 3rem 2rem;
+    }
+    .footer-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2rem;
+      align-items: center;
+    }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; list-style: none; }
+    .footer-nav a { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.08em; transition: color 0.3s; }
+    .footer-nav a:hover { color: var(--gold-light); }
+    .footer-copy { font-family: 'Cinzel', serif; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.1em; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      nav { padding: 1rem 1.2rem; }
+      .nav-links { display: none; }
+      .about-grid, .session-grid, .profile-layout { grid-template-columns: 1fr; }
+      .profile-image-placeholder { width: 100%; height: 220px; }
+      .footer-inner { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- STARFIELD -->
+  <div id="starfield"><canvas id="stars"></canvas></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">Auryn Astrology</a>
+    <ul class="nav-links">
+      <li><a href="#about">占星術について</a></li>
+      <li><a href="#profile">プロフィール</a></li>
+      <li><a href="#session">セッション</a></li>
+      <li><a href="#price">料金</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#booking">ご予約</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <p class="hero-eyebrow">Western Astrology</p>
+    <h1 class="hero-title">Auryn Astrology</h1>
+    <p class="hero-subtitle">西洋占星術家 望遠 響子</p>
+    <p class="hero-desc">
+      西洋占星術は、あなたが生まれた瞬間の時間・場所から算出される、太陽系の10の天体、星座、天体同士の関係性などから、生まれもった資質や人生の流れなどを読み解いていきます。
+    </p>
+    <div class="hero-divider"></div>
+  </section>
+
+  <!-- NOTICE -->
+  <div class="notice-bar reveal">
+    <div>
+      <span class="date">2025.08.02</span>
+      8月・9月はセッションをお休み致します。秋以降メニュー改定の上再開予定です。
+    </div>
+    <div class="notice-links">
+      <a href="https://www.instagram.com/" target="_blank">Instagram はこちら</a>
+      <a href="https://note.com/" target="_blank">note も更新中！</a>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <p class="section-label reveal">About Astrology</p>
+      <h2 class="section-title reveal">西洋占星術について</h2>
+      <div class="about-grid">
+        <div class="reveal">
+          <div class="about-card">
+            <h3>西洋占星術とは？</h3>
+            <p>西洋占星術は古代バビロニア・エジプト文明を起源とし、天文学と、ギリシア哲学が結びつき占星術の基礎ができあがりました。</p>
+            <p style="margin-top:1rem">遥か数千年も昔から、人類は夜空の惑星の動きを観察・蓄積し、星の動きと地上の出来事との間に関連性を見出してきたのです。</p>
+          </div>
+        </div>
+        <div class="reveal" style="transition-delay:0.15s">
+          <div class="about-card">
+            <h3>西洋占星術の使い方</h3>
+            <p>西洋占星術では、あなたの生まれ持った資質や、対人関係などを見出すことができます。また、これから先の未来予想もできますが、チャンスを活かすも、ピンチを乗り越え成長するかどうかも、あなたの行動次第です。</p>
+            <p style="margin-top:1rem">チャンスに備え、準備することができたら便利ですし、ここまで待てばチャンスがやってくるかも？という期待は、何よりも心強いお守りになります。</p>
+            <p style="margin-top:1rem">ご自身の新たな強みを発見し、可能性を信じ、これからの未来が楽しみになるセッションを心掛けています。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="profile">
+    <div class="container">
+      <p class="section-label reveal">Profile</p>
+      <h2 class="section-title reveal">プロフィール</h2>
+      <div class="profile-layout reveal">
+        <div class="profile-image-placeholder">
+          <span>Photo</span>
+        </div>
+        <div>
+          <h3 class="profile-name">望遠 響子</h3>
+          <p class="profile-name-en">Bouen Kyouko</p>
+          <p class="profile-tag">西洋占星術家</p>
+          <p class="profile-bio">1972年 新潟県生まれ 横浜在住。<br>趣味は、天体観測・撮影、天然石、読書、旅。</p>
+          <div class="profile-signs">
+            <span class="sign-chip">太陽・射手座</span>
+            <span class="sign-chip">月・水瓶座</span>
+            <span class="sign-chip">ASC・山羊座</span>
+          </div>
+          <div class="career-table">
+            <div class="career-row">
+              <div class="career-label">出会い</div>
+              <div>2020年に西洋占星術に出会い、その奥深さに惹かれて書籍での独学を開始。その後、占星術講座も受講。</div>
+            </div>
+            <div class="career-row">
+              <div class="career-label">実績</div>
+              <div>
+                2022年頃から知人・友人からの口コミを中心にセッションを開始。働く世代の方々からのキャリア・育児・パートナーシップについてのセッション経験多数。50代・60代の方からのセカンドキャリア相談、人生の振り返りなどのセッション依頼も増えています。
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SESSION -->
+  <section id="session">
+    <div class="container">
+      <p class="section-label reveal">Session</p>
+      <h2 class="section-title reveal">占星術セッションについて</h2>
+      <p class="reveal" style="font-size:0.9rem;margin-bottom:2.5rem">対面、またはオンライン（Zoom）形式のどちらかをご選択いただけます。</p>
+      <div class="session-grid">
+        <div class="session-card reveal">
+          <h3>対面の場合</h3>
+          <p>JR横浜駅から徒歩1分</p>
+          <p style="margin-top:0.8rem"><strong style="color:var(--text)">場所：</strong>JR横浜タワー12階<br>ステーションスイッチ内会議室</p>
+          <p style="margin-top:0.8rem"><a href="https://stationswitch.jp" target="_blank">stationswitch.jp</a></p>
+        </div>
+        <div class="session-card reveal" style="transition-delay:0.15s">
+          <h3>オンラインの場合</h3>
+          <p>Zoom — PC・スマホ・タブレットでご利用いただけます。</p>
+          <ul style="margin-top:0.8rem">
+            <li>事前にアプリのDLをお願いします。</li>
+            <li>カメラはONにしていただけるとお話がしやすいですが、OFFでも構いません。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICE -->
+  <section id="price">
+    <div class="container">
+      <p class="section-label reveal">Pricing</p>
+      <h2 class="section-title reveal">料金</h2>
+      <p class="reveal" style="font-size:0.78rem;color:var(--text-dim);margin-bottom:2rem;letter-spacing:0.1em">価格はすべて税込表記 / オンライン・対面共通</p>
+      <table class="price-table reveal">
+        <tr>
+          <td>セッション 50分（通常）</td>
+          <td>¥11,000</td>
+        </tr>
+        <tr>
+          <td>セッション 80分（人生の振り返りと未来予測）</td>
+          <td>¥16,500</td>
+        </tr>
+        <tr>
+          <td>時間延長 ＋10分</td>
+          <td>¥2,000</td>
+        </tr>
+      </table>
+      <div class="price-note reveal">
+        <strong style="color:var(--gold-light)">【お支払い方法】</strong><br>
+        銀行振込（前払い）<br>
+        延長料金が発生した場合はセッションの終了後にご入金をお願いします。<br>
+        対面の場合の延長料金は、現地での現金払いも可能です。
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section id="flow">
+    <div class="container">
+      <p class="section-label reveal">How to Book</p>
+      <h2 class="section-title reveal">お申し込みの流れ</h2>
+      <div class="flow-steps">
+        <div class="flow-step reveal">
+          <div class="flow-num">01<span>STEP</span></div>
+          <div class="flow-body">
+            <h3>お申し込み</h3>
+            <p>ご予約フォームから、希望日のお時間等、必要事項をご入力の上、お申し込みください。ご予約は2週間前までにお願いいたします。</p>
+          </div>
+        </div>
+        <div class="flow-step reveal">
+          <div class="flow-num">02<span>STEP</span></div>
+          <div class="flow-body">
+            <h3>セッション日時の確定＆お振込</h3>
+            <p>お申し込みから3日以内に、メールでセッション日時の確定・お振込み先などをご連絡いたします。</p>
+          </div>
+        </div>
+        <div class="flow-step reveal">
+          <div class="flow-num">03<span>STEP</span></div>
+          <div class="flow-body">
+            <h3>セッション当日</h3>
+            <p>ご入金確認後、対面の場合はセッション場所の詳細、オンラインの方はZoomのURLをご連絡いたします。ご予約時間10分前を目処に、セッション場所またはオンラインへアクセスをお願いいたします。</p>
+          </div>
+        </div>
+        <div class="flow-step reveal">
+          <div class="flow-num">04<span>STEP</span></div>
+          <div class="flow-body">
+            <h3>終了後</h3>
+            <p>セッションで利用したホロスコープなどの資料を当日中にメールで送付いたします。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <p class="section-label reveal">FAQ</p>
+      <h2 class="section-title reveal">よくあるご質問</h2>
+      <div class="faq-list reveal">
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span class="q-mark">Q</span>
+            <span>セッションではどんな質問ができますか？</span>
+            <span class="faq-icon">＋</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner">
+            <ul>
+              <li>ご自身の生まれ持った資質について（得意分野・適職、対人・恋愛傾向、性格）</li>
+              <li>人生の目的</li>
+              <li>今後のキャリア</li>
+              <li>これから数年後までの未来予測</li>
+              <li>パートナーや家族との相性や今後の関係について（1名まで）</li>
+              <li>人生の振り返りと未来予測★こちらのみ80分セッションとなります★</li>
+            </ul>
+          </div></div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span class="q-mark">Q</span>
+            <span>質問はいくつまでできますか？</span>
+            <span class="faq-icon">＋</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>通常の50分のセッションでは、時間内に回答できる範囲（2件程度）でお答え致します。出生から現在までの星の流れを振り返る【人生の振り返りと未来予測】のみ、80分でのセッションとなります。</p>
+          </div></div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span class="q-mark">Q</span>
+            <span>人生の振り返りと未来予測とは？</span>
+            <span class="faq-icon">＋</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>出生時から100歳までの主な星の動きを元に、あなたのこれまでの人生を振り返りながら星の影響を確認しつつ、これから先の人生の流れを確認していきます。事前に、ご自身のライフイベントの時期をいくつか確認していただく簡単なワークがあります。</p>
+          </div></div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span class="q-mark">Q</span>
+            <span>セッションの予約方法は？</span>
+            <span class="faq-icon">＋</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>セッションご予約フォームからお願いいたします。セッション日時のご希望については、本日から2週間以降のご希望日時を3つご連絡ください。</p>
+            <p style="margin-top:0.8rem">ご予約可能日：水〜土 / 13:00〜、15:00〜、17:00〜</p>
+            <p>3日以内に、ご希望日時の中から、予約確定日をご連絡いたします。</p>
+          </div></div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span class="q-mark">Q</span>
+            <span>どのような支払い方法が使えますか？</span>
+            <span class="faq-icon">＋</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>お支払いは銀行振り込みをお願いしております。</p>
+          </div></div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q">
+            <span class="q-mark">Q</span>
+            <span>予約のキャンセルはできますか？</span>
+            <span class="faq-icon">＋</span>
+          </button>
+          <div class="faq-a"><div class="faq-a-inner">
+            <p>お振込後のキャンセル・料金のご返金は承っておりません。ご入金後、やむを得ない理由でセッションを受けられない場合は、別の日程に振替をいたします。セッションの2日前までにご連絡ください。当日ご連絡のないキャンセルは振替できかねますのでご了承ください。</p>
+          </div></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- BOOKING -->
+  <section id="booking">
+    <div class="container">
+      <p class="section-label reveal">Reservation</p>
+      <h2 class="section-title reveal">セッションのご予約</h2>
+      <div class="booking-notice reveal">
+        <p>セッションは2025年秋以降再開いたします。</p>
+      </div>
+      <div class="contact-form reveal">
+        <p style="font-size:0.85rem;text-align:center;margin-bottom:2.5rem;color:var(--text-dim)">ご予約以外のお問い合わせはこちらから</p>
+        <div class="form-group">
+          <label>お名前<span class="req">必須</span></label>
+          <input type="text" placeholder="名字と名前を入力してください。">
+        </div>
+        <div class="form-group">
+          <label>連絡用メールアドレス<span class="req">必須</span></label>
+          <input type="email" placeholder="返信を受け取るメールアドレスを入力してください。">
+        </div>
+        <div class="form-group">
+          <label>お問い合わせ内容<span class="req">必須</span></label>
+          <textarea placeholder="具体的なお問い合わせ内容を入力してください。"></textarea>
+        </div>
+        <div class="privacy-check">
+          <input type="checkbox" id="privacy">
+          <label for="privacy"><a href="#" style="color:var(--gold-light)">プライバシーポリシー</a>に同意する</label>
+        </div>
+        <button class="btn-submit">送 信</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <ul class="footer-nav">
+        <li><a href="#hero">トップ</a></li>
+        <li><a href="#profile">プロフィール</a></li>
+        <li><a href="#session">セッションについて</a></li>
+        <li><a href="#price">料金</a></li>
+        <li><a href="#flow">ご利用までの流れ</a></li>
+        <li><a href="#faq">よくあるご質問</a></li>
+        <li><a href="#booking">ご予約・お問い合わせ</a></li>
+        <li><a href="#">プライバシーポリシー</a></li>
+      </ul>
+      <p class="footer-copy">© 2024 Auryn Astrology</p>
+    </div>
+  </footer>
+
+  <script>
+    // ── STARFIELD ──
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initStars() {
+      stars = [];
+      const count = Math.floor((canvas.width * canvas.height) / 3000);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.1 + 0.1,
+          a: Math.random(),
+          speed: Math.random() * 0.004 + 0.001,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    let frame = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      frame++;
+      stars.forEach(s => {
+        const alpha = s.a * (0.5 + 0.5 * Math.sin(frame * s.speed + s.phase));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(240,232,200,${alpha})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+
+    resize(); initStars(); draw();
+    window.addEventListener('resize', () => { resize(); initStars(); });
+
+    // ── SCROLL REVEAL ──
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    // ── FAQ ACCORDION ──
+    document.querySelectorAll('.faq-q').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+      });
+    });
+  </script>
+</body>
+</html>
